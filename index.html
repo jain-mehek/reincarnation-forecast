@@ -1,1 +1,660 @@
-Hi!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afterpath Birth Forecast Generator</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff8ef;
+      color: #2f2418;
+    }
+
+    header {
+      background: #e87522;
+      color: white;
+      padding: 18px 30px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #f1d3b5;
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+
+    h1, h2 {
+      color: #c45712;
+      margin-top: 0;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: bold;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 10px;
+      border: 1px solid #e5bc90;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #e87522;
+      color: white;
+      font-weight: bold;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #c45712;
+    }
+
+    .gauge-area {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .gauge-wrap {
+      width: 260px;
+      height: 135px;
+      position: relative;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .gauge {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 270deg,
+        #c63d1f 0deg 18deg,
+        #e87522 18deg 36deg,
+        #f2b632 36deg 54deg,
+        #e3d85a 54deg 72deg,
+        #9cc96b 72deg 120deg,
+        #3fa66b 120deg 180deg,
+        #eee1d3 180deg 360deg
+      );
+    }
+
+    .gauge-inner {
+      position: absolute;
+      left: 45px;
+      top: 45px;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: white;
+      border: 1px solid #f1d3b5;
+    }
+
+    .needle {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 4px;
+      height: 110px;
+      background: #2f2418;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(-90deg);
+      border-radius: 4px;
+    }
+
+    .score-number {
+      font-size: 56px;
+      font-weight: bold;
+      color: #c45712;
+      line-height: 1;
+    }
+
+    .score-caption {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .result-box {
+      background: #fffaf4;
+      border: 1px solid #f1d3b5;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .result-box.full {
+      grid-column: 1 / -1;
+    }
+
+    .label {
+      color: #e87522;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .value {
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1.35;
+    }
+
+    .note {
+      background: #fff1df;
+      border-left: 5px solid #e87522;
+      padding: 14px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 750px) {
+      .gauge-area {
+        grid-template-columns: 1fr;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>Afterpath</header>
+
+  <main>
+    <section class="card">
+      <h1>Birth Forecast Generator</h1>
+      <p>
+        Enter a score to generate a possible future birth. The generator follows a ladder-based belief system: very low scores return to microscopic life, then small life, animal life, plant life, and finally human life. Human births have the widest range because humans are understood to have the most agency and the greatest ability to rise or fall quickly.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Input</h2>
+      <label for="scoreInput">Score</label>
+      <input id="scoreInput" type="number" value="455" min="0" max="1300">
+      <button onclick="generateForecast()">Generate Forecast</button>
+    </section>
+
+    <section class="card gauge-area">
+      <div>
+        <div class="gauge-wrap">
+          <div class="gauge"></div>
+          <div class="gauge-inner"></div>
+          <div class="needle" id="needle"></div>
+        </div>
+      </div>
+      <div>
+        <div class="score-number" id="scoreOutput">455</div>
+        <div class="score-caption" id="tierOutput">Human Life</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Forecast</h2>
+      <div class="result-grid">
+        <div class="result-box">
+          <div class="label">Tier</div>
+          <div class="value" id="tierResult">---</div>
+        </div>
+
+        <div class="result-box">
+          <div class="label">Form</div>
+          <div class="value" id="formResult">---</div>
+        </div>
+
+        <div class="result-box full">
+          <div class="label">Habitat / Setting</div>
+          <div class="value" id="habitatResult">---</div>
+        </div>
+
+        <div class="result-box full">
+          <div class="label">Primary Constraint</div>
+          <div class="value" id="constraintResult">---</div>
+        </div>
+
+        <div class="result-box full">
+          <div class="label">Primary Advantage</div>
+          <div class="value" id="advantageResult">---</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tables = {
+      microbial: {
+        tier: "Microbial Life",
+        forms: ["soil bacterium", "waterborne microbe", "fungal spore", "viral particle", "extremophile", "mold patch", "pond algae", "gut bacteria"],
+        habitats: ["stagnant monsoon water", "human digestive tract", "industrial runoff channel", "warm soil beneath a crowded settlement", "a damp kitchen corner", "a public bathroom sink", "old food", "floodwater"],
+        constraints: [
+          "almost no control over where it goes",
+          "can be wiped out by heat, soap, medicine, or luck",
+          "depends completely on the conditions around it",
+          "lives in a place that changes suddenly",
+          "has a short and repetitive existence",
+          "gets carried around by larger bodies",
+          "survives only if the environment allows it",
+          "little room for positive impact"
+        ],
+        advantages: [
+          "can multiply quickly",
+          "can survive in places larger beings cannot",
+          "sometimes becomes part of a larger living system",
+          "hard to remove completely",
+          "can travel without effort",
+          "does not need much space",
+          "can wait through bad conditions",
+          "exists in huge numbers"
+        ]
+      },
+
+      small: {
+        tier: "Insect / Small Life",
+        forms: ["monsoon mosquito", "kitchen ant", "factory moth", "drain beetle", "cricket", "firefly", "roach", "butterfly", "house fly", "silverfish", "termite", "tiny spider"],
+        habitats: ["apartment kitchen", "garment factory wall", "monsoon drainage channel", "market trash pile", "garden", "pasture", "bathroom corner", "bus stop light", "schoolyard", "fruit stall"],
+        constraints: [
+          "easily killed when noticed",
+          "slow for its size",
+          "too visible at the wrong moment",
+          "body is fragile",
+          "keeps returning to dangerous light",
+          "humans treat it as dirt or nuisance",
+          "loses food trails when the floor is cleaned",
+          "weather changes everything",
+          "gets trapped indoors",
+          "wings do not work well",
+          "one part of the body never healed right",
+          "depends on leftovers",
+          "must hide from birds, feet, hands, and sprays",
+          "short life; little time to learn anything"
+        ],
+        advantages: [
+          "can hide almost anywhere",
+          "can live off very little",
+          "fast reproduction",
+          "good at finding openings",
+          "not important enough to be tracked",
+          "can survive around human mess",
+          "has many others nearby",
+          "moves through walls and cracks",
+          "beautiful enough to be spared"
+        ]
+      },
+
+      animalLow: {
+        tier: "Animal Life",
+        forms: ["prey animal in a shrinking habitat", "street dog with no regular feeder", "working animal in a harsh labor setting", "fish in a polluted canal", "stray puppy", "old donkey", "goat near a highway", "rat near a market"],
+        habitats: ["highway edge", "industrial canal", "crowded market district", "dry forest edge near expanding construction", "construction site", "railway crossing", "dumping ground", "back lane behind shops"],
+        constraints: [
+          "little reliable care",
+          "danger from traffic, weather, hunger, and humans",
+          "valued mostly when useful",
+          "safety depends on staying unnoticed",
+          "often thirsty",
+          "injury takes a long time to heal",
+          "humans are kind one day and cruel the next",
+          "food is uncertain",
+          "noise and movement make rest difficult",
+          "too slow to escape every danger"
+        ],
+        advantages: [
+          "strong instinct for danger",
+          "good hearing",
+          "can read movement and sound",
+          "occasional kindness from strangers",
+          "can adapt to difficult places",
+          "knows where food appears",
+          "can travel without paperwork",
+          "learns routines quickly",
+          "has a small pack or familiar route",
+          "can endure more than expected",
+          "some people feel guilty enough to help"
+        ]
+      },
+
+      animalMid: {
+        tier: "Animal Life",
+        forms: ["urban crow", "temple monkey", "semi-owned street cat", "neighborhood cow", "shop dog", "pigeon", "stray cat fed by three houses", "monkey near a tourist site"],
+        habitats: ["temple complex", "dense city neighborhood", "shared apartment courtyard", "busy street market", "rooftop", "train station", "tea stall", "college campus"],
+        constraints: [
+          "care is inconsistent",
+          "freedom comes with danger",
+          "abused by other animals",
+          "too clever for people to trust",
+          "possibility for abuse by humans",
+          "food depends on human habit and mood",
+          "risk of being chased away",
+          "some people love it; some people hate it",
+          "no stable shelter",
+          "illness is noticed late",
+          "keeps getting into places where it is not wanted"
+        ],
+        advantages: [
+          "regular access to food",
+          "social intelligence",
+          "people recognize it",
+          "may be protected by affection, ritual, or routine",
+          "can move around the city freely",
+          "can steal without feeling guilt",
+          "good memory for places",
+          "can make use of human habits",
+          "not fully owned by anyone",
+          "has a life people tell stories about"
+        ]
+      },
+
+      animalHigh: {
+        tier: "Animal Life",
+        forms: ["beloved household dog", "well-cared-for domestic cat", "protected temple elephant", "rescued animal in a sanctuary", "old family pet", "therapy animal", "retired working animal"],
+        habitats: ["comfortable apartment", "family courtyard", "protected temple grounds", "animal sanctuary", "quiet bedroom", "well-funded shelter", "garden with shade", "soft indoor room"],
+        constraints: [
+          "comfort without full autonomy",
+          "care depends on human stability",
+          "movement is controlled",
+          "loved but not fully understood",
+          "bored often",
+          "too dependent on one household",
+          "freedom is traded for safety",
+          "frquently lonely"
+        ],
+        advantages: [
+          "reliable food and shelter",
+          "medical care",
+          "affection from humans",
+          "social opportunities",
+          "protection from many ordinary dangers",
+          "fewer urgent fears",
+          "high possibility for positive impact",
+          "time to rest and play",
+          "may be remembered after death"
+        ]
+      },
+
+      plantLow: {
+        tier: "Plant Life",
+        forms: ["weed in cracked pavement", "sapling in polluted soil", "crop plant in exhausted land", "plant growing beside industrial waste", "roadside grass", "moldy balcony plant", "dry field crop", "plant in a drain"],
+        habitats: ["roadside median", "factory edge", "dry agricultural field", "storm drain", "broken sidewalk", "empty lot", "construction dust", "ditch"],
+        constraints: [
+          "poor soil",
+          "irregular water",
+          "risk of being cleared away",
+          "growth limited by pollution",
+          "trampled often",
+          "too little shade",
+          "too much heat",
+          "roots cannot go deep",
+          "cut before it can spread",
+          "ignored unless it becomes a problem",
+          "near smoke or waste",
+          "survives but does not flourish"
+        ],
+        advantages: [
+          "stubborn growth",
+          "can survive neglect",
+          "needs little attention",
+          "small ecological usefulness",
+          "return after being cut",
+          "seeds travel easily",
+          "takes root in unlikely places",
+          "does not ask permission to grow",
+          "offers a little green in a hard place",
+          "can hold soil together",
+          "might feed something small"
+        ]
+      },
+
+      plantMid: {
+        tier: "Plant Life",
+        forms: ["street tree", "fruit tree in a shared courtyard", "shrine plant", "monsoon vine", "balcony plant", "schoolyard tree", "neighborhood tree", "flowering bush near a gate"],
+        habitats: ["schoolyard", "courtyard shrine", "crowded neighborhood street", "flood-prone riverbank", "shared balcony", "small park", "outside a clinic", "near a bus stop"],
+        constraints: [
+          "roots trapped by concrete",
+          "care depends on nearby people",
+          "land value may threaten survival",
+          "growth is tolerated only while useful",
+          "branches cut badly",
+          "water comes irregularly",
+          "soil is not deep enough",
+          "surrounded by noise and dust",
+        ],
+        advantages: [
+          "shade that people rely on",
+          "fruit or flowers",
+          "religious or emotional attachment",
+          "long memory of a changing place",
+          "children notice it",
+          "birds visit often",
+          "people sit near it without thinking",
+          "can become part of a neighborhood routine",
+          "makes heat slightly less cruel",
+          "has a reason people might defend it",
+          "grows slowly but visibly"
+        ]
+      },
+
+      plantHigh: {
+        tier: "Plant Life",
+        forms: ["old banyan tree", "protected grove tree", "botanical garden tree", "sacred fig tree", "ancient mango tree", "tree inside a temple courtyard", "tree protected by local rumor", "large rain tree"],
+        habitats: ["protected grove", "temple courtyard", "public garden", "old neighborhood square", "heritage site", "quiet campus", "graveyard edge", "old village road"],
+        constraints: [
+          "protection depends on human belief",
+          "roots may conflict with development",
+          "slow to recover from damage",
+          "completely stationery",
+          "deforestation",
+          "cut down for bark", 
+          "damaged by tourists"
+        ],
+        advantages: [
+          "long lifespan",
+          "deep social meaning",
+          "protected by law, custom, or devotion",
+          "shelters many lives at once",
+          "people gather around it",
+          "can become a landmark",
+          "holds stories without speaking",
+          "offers shade across generations",
+          "harder to remove than a smaller life",
+          "likelihood of significant positive impact"
+        ]
+      },
+
+      humanLow: {
+        tier: "Human Life",
+        forms: ["child in a debt-burdened household", "child of migrant workers", "child in an aid-mapped neighborhood", "child born into unstable paperwork", "child in a low-wage industrial district", "child in a climate-stressed settlement", "child whose family shares one room", "child of a garment worker"],
+        habitats: ["manufacturing industry", "flood-prone coastal city", "informal settlement", "rural district with unstable income", "factory neighborhood", "crowded lane"],
+        constraints: [
+          "clean air is unreliable",
+          "education depends on sponsorship or debt",
+          "family obligation begins early",
+          "documents decide what help is available",
+          "privacy is difficult to protect",
+          "every choice is shaped by time and money",
+          "chronic illness",
+          "not academically gifted",
+          "talents go unseen"
+        ],
+        advantages: [
+          "a stubborn parent",
+          "a teacher who notices talent",
+          "neighbors who share information",
+          "siblings who share burdens",
+          "strong sense of community",
+          "learned resilience"
+        ]
+      },
+
+      humanMid: {
+        tier: "Human Life",
+        forms: ["child in a working-class urban household", "child in a lower-middle professional family", "child in a crowded but stable home", "child of service workers", "child in a scholarship-dependent household", "child in a family trying to rise", "child near a transit line", "child in a rented apartment"],
+        habitats: ["dense urban neighborhood", "small apartment near a transit line", "urban settlement near expanding industry", "public school district with uneven resources", "mixed-income neighborhood", "city edge where rent is unaffordable", "busy apartment block", "neighborhood with coaching centers"],
+        constraints: [
+          "failure affects the whole family",
+          "time is scarce",
+          "health problems are expensive",
+          "good intentions compete with practical needs",
+          "opportunity depends on exams, forms, and recommendations",
+          "the household has little room for rest",
+          "always comparing upward",
+          "not poor enough for some help and not rich enough for safety",
+          "must be careful with reputation",
+          "one adult's job loss changes everything",
+          "ambition can become pressure",
+          "comfort exists, but not without worry"
+        ],
+        advantages: [
+          "access to school",
+          "a parent with steady work",
+          "friendships across class lines",
+          "a talent that becomes visible",
+          "enough stability to imagine alternatives",
+          "some privacy",
+          "a borrowed laptop",
+          "a teacher, coach, or neighbor who helps",
+          "public transport nearby"
+        ]
+      },
+
+      humanHigh: {
+        tier: "Human Life",
+        forms: ["child in a wealthy professional household", "child in a corporate residential enclave", "child of consultants or analysts", "child of academics", "child of well-of artists", "only child in a high-achieving family", "child in a privacy-protected neighborhood", "child raised with future-birth planning"],
+        habitats: ["high-opportunity education district", "gated urban community", "apartment tower", "smart city", "corporate wellness neighborhood", "wealthy district insulated from visible need", "quiet apartment with filtered air", "neighborhood with private security", "walkable city", "city with good public transit"],
+        constraints: [
+          "status pressure is constant",
+          "kindness may be viewed as performative",
+          "watched by family, school, and apps"
+        ],
+        advantages: [
+          "excellent education",
+          "time to reflect before acting",
+          "exceptional network",
+          "access to advisors, therapists, and consultants",
+          "room to make mistakes",
+          "clear direction and purpose in life",
+          "well-traveled",
+          "well-read",
+          "flexibility to pursue passions"
+        ]
+      },
+
+      humanExceptional: {
+        tier: "Human Life / Liberation Threshold",
+        forms: ["final-birth candidate", "child born into rare comfort", "heir with inherited advantage"],
+        habitats: ["quiet educational enclave", "wealthy household with strong ethical traditions", "protected district with time for study", "community built around service", "old city center with ritual importance", "home with comfort and discipline", "retreat school", "family compound with many rules"],
+        constraints: [
+          "people expect too much purity",
+          "watched too closely",
+          "must decide whether liberation is escape or responsibility"
+        ],
+        advantages: [
+          "great mental and physical aptitude",
+          "consistent social circle",
+          "unparalleled education",
+          "material freedom",
+          "capacity to help without any personal concern",
+          "possibility of nirvana"
+        ]
+      }
+    };
+
+    function chooseRandom(list) {
+      const index = Math.floor(Math.random() * list.length);
+      return list[index];
+    }
+
+    function getTableKey(score) {
+      if (score < 100) {
+        return "microbial";
+      } else if (score < 200) {
+        return "small";
+      } else if (score < 234) {
+        return "animalLow";
+      } else if (score < 267) {
+        return "animalMid";
+      } else if (score < 300) {
+        return "animalHigh";
+      } else if (score < 334) {
+        return "plantLow";
+      } else if (score < 367) {
+        return "plantMid";
+      } else if (score < 400) {
+        return "plantHigh";
+      } else if (score < 700) {
+        return "humanLow";
+      } else if (score < 900) {
+        return "humanMid";
+      } else if (score < 1100) {
+        return "humanHigh";
+      } else {
+        return "humanExceptional";
+      }
+    }
+
+    function generateForecast() {
+      let score = Number(document.getElementById("scoreInput").value);
+
+      if (isNaN(score)) {
+        score = 0;
+      }
+
+      if (score < 0) {
+        score = 0;
+      }
+
+      if (score > 1300) {
+        score = 1300;
+      }
+
+      const key = getTableKey(score);
+      const table = tables[key];
+
+      document.getElementById("scoreOutput").textContent = score;
+      document.getElementById("tierOutput").textContent = table.tier;
+      document.getElementById("tierResult").textContent = table.tier;
+      document.getElementById("formResult").textContent = chooseRandom(table.forms);
+      document.getElementById("habitatResult").textContent = chooseRandom(table.habitats);
+      document.getElementById("constraintResult").textContent = chooseRandom(table.constraints);
+      document.getElementById("advantageResult").textContent = chooseRandom(table.advantages);
+
+      const rotation = -90 + (score / 1300) * 180;
+      document.getElementById("needle").style.transform = "translateX(-50%) rotate(" + rotation + "deg)";
+    }
+
+    generateForecast();
+  </script>
+</body>
+</html>
